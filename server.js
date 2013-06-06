@@ -1,7 +1,7 @@
 var http    = require('http');
 var Q       = require('q');
 var express = require('express');
-var bundle  = require('./lib/bundler')({workDir: __dirname + '/tmp'});
+var bundle  = require('./lib/bundler');
 var fs      = require('./lib/pfs');
 var engines = require('consolidate');
 
@@ -27,10 +27,10 @@ app.post('/browserify', function (req, res) {
     fs.readFile(files.source.path)
   ]
 
-  Q.all(reads).spread(bundle).spread(
-    function (b, dir) {
-      //res.setHeader('Location', '/bundle/' + dir)
-      b.pipe(res)
+  Q.all(reads).spread(bundle.bind(null, __dirname + '/tmp')).spread(
+    function (stream, dir) {
+      res.setHeader('Location', '/bundle/' + dir)
+      stream.pipe(res)
     },
     function (err) {
       console.log(err);
