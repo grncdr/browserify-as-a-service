@@ -1,0 +1,12 @@
+<html>
+  <head>
+    <title>Browserify a thing</title>
+  </head>
+  <body>
+    <form method="POST" action="browserify" enctype="multipart/form-data">
+      package.json: <input type="file" name="package_json"><br>
+      index.js: <input type="file" name="source"><br>
+      <input type="submit">
+    </form>
+  </body>
+</html>
