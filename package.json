@@ -1,5 +1,5 @@
 {
-  "name": "browservicify",
+  "name": "browserify-as-a-service",
   "version": "0.0.0",
   "description": "ERROR: No README.md file found!",
   "main": "index.js",
@@ -10,13 +10,6 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
-    "browserify": "~2.17.3",
-    "express": "~3.2.6",
-    "consolidate": "~0.9.1",
-    "eco": "~1.1.0-rc-3",
-    "q": "~0.9.4",
-    "mkdirp": "~0.3.5",
-    "rimraf": "~2.1.4",
-    "tee-1": "~0.1.1"
+    "browserify-bundle-factory": "~0.1.1"
   }
 }

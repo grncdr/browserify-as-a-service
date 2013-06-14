@@ -1,43 +1,69 @@
-var http    = require('http');
-var Q       = require('q');
-var express = require('express');
-var bundle  = require('./lib/bundler');
-var fs      = require('./lib/pfs');
-var engines = require('consolidate');
+/**
+ * This server is just a demo, discussion of the API to be exposed can be found
+ * here: https://github.com/grncdr/browserify-as-a-service/issues/3
+ */
+var http = require('http');
+var bundleFactory  = require('browserify-bundle-factory');
 
-var app = express();
+var getBundle = bundleFactory({
+  cache: __dirname + '/package-cache',
+  bundleDir: __dirname + '/public/bundles'
+});
 
-app.use(express.bodyParser())
-app.set('view engine', 'eco')
-app.engine('eco', engines.eco)
+http.createServer(handleRequest).listen(process.env.PORT || 8888);
 
-app.get('/', function (req, res) {
-  res.render('index');
-})
-
-app.post('/browserify', function (req, res) {
-  var files = req.files;
-  if (!(files && files.package_json && files.source)) {
-    return res.end({error: "package_json and source are required"})
+function handleRequest(req, res) {
+  // just going to go on the internet and tell lies
+  console.log(req.method, req.url);
+  res.setHeader('Content-Type', 'application/json');
+  function fail(code, message) {
+    res.writeHead(code, message || http.STATUS_CODES[code]);
+    res.end(JSON.stringify({message: message}));
   }
-  // TODO - more validation
-
-  var reads = [
-    fs.readFile(files.package_json.path),
-    fs.readFile(files.source.path)
-  ]
-
-  Q.all(reads).spread(bundle.bind(null, __dirname + '/tmp')).spread(
-    function (stream, dir) {
-      res.setHeader('Location', '/bundle/' + dir)
-      stream.pipe(res)
-    },
-    function (err) {
-      console.log(err);
-      console.log(err.stack);
-      res.end("" + err.stack);
+  switch (req.method) {
+  case 'POST':
+    if (req.url != '/browserify') {
+      fail(404);
+    } else {
+      sendBundle(req, res);
     }
-  )
-})
+    break;
+  case 'GET':
+    fail(404)
+    // TODO static file serving, especially cached bundles
+    break;
+  default:
+    fail(405);
+  }
+}
 
-http.createServer(app).listen(process.env.PORT || 8888);
+function sendBundle(req, res) {
+  var raw = "";
+  console.log('reading body')
+  req
+  .on('data', function (chunk) { raw += chunk; })
+  .on('end', function () {
+    var body;
+    try { body = JSON.parse(raw) } catch (err) {
+      res.writeHead(422);
+      res.end();
+      return;
+    }
+    console.log('getting bundle', body);
+    getBundle(body['package.json'], body.sources, body.browserify)
+    .once('pathname', function (pathname) {
+      pathname = pathname.replace(__dirname + '/public', '')
+      console.log('got pathname', pathname);
+      res.setHeader('Location', pathname);
+      res.writeHead(201);
+      res.setHeader('Content-Type', 'application/javascript');
+    })
+    .once('error', function (err) {
+      console.log('bundle errored');
+      res.writeHead(500);
+      res.end(err.stack);
+    })
+    .pipe(res)
+  })
+  .setEncoding('utf-8')
+}
