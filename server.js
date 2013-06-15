@@ -14,7 +14,6 @@ http.createServer(handleRequest).listen(process.env.PORT || 8888);
 
 function handleRequest(req, res) {
   // just going to go on the internet and tell lies
-  console.log(req.method, req.url);
   res.setHeader('Content-Type', 'application/json');
   function fail(code, message) {
     res.writeHead(code, message || http.STATUS_CODES[code]);
@@ -39,7 +38,6 @@ function handleRequest(req, res) {
 
 function sendBundle(req, res) {
   var raw = "";
-  console.log('reading body')
   req
   .on('data', function (chunk) { raw += chunk; })
   .on('end', function () {
@@ -49,17 +47,14 @@ function sendBundle(req, res) {
       res.end();
       return;
     }
-    console.log('getting bundle', body);
     getBundle(body['package.json'], body.sources, body.browserify)
     .once('pathname', function (pathname) {
       pathname = pathname.replace(__dirname + '/public', '')
-      console.log('got pathname', pathname);
       res.setHeader('Location', pathname);
       res.writeHead(201);
       res.setHeader('Content-Type', 'application/javascript');
     })
     .once('error', function (err) {
-      console.log('bundle errored');
       res.writeHead(500);
       res.end(err.stack);
     })
