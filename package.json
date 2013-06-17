@@ -10,6 +10,7 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
-    "browserify-bundle-factory": "~0.1.1"
+    "browserify-bundle-factory": "~0.1.1",
+    "ecstatic": "~0.4.5"
   }
 }
