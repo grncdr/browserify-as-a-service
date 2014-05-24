@@ -1,3 +1,3 @@
 # Browserify-as-a-Service
 
-Don't use this (yet), it's just a demo to figure out how it *should* work.
+Only here for historical purposes, you probably want [browserify-cdn](https://github.com/jesusabdullah/browserify-cdn) instead.
